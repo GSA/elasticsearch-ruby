@@ -1055,6 +1055,23 @@ describe Elasticsearch::Transport::Client do
         expect(request).to be(true)
       end
     end
+
+    context 'when Elasticsearch response includes a warning header' do
+      let(:logger) { double('logger', warn: '', warn?: '', info?: '', info: '', debug?: '', debug: '') }
+      let(:client) do
+        Elasticsearch::Transport::Client.new(hosts: hosts, logger: logger)
+      end
+
+      let(:warning) { 'Elasticsearch warning: "deprecation warning"' }
+
+      it 'prints a warning' do
+        expect_any_instance_of(Faraday::Connection).to receive(:run_request) do
+          Elasticsearch::Transport::Transport::Response.new(200, {}, { 'warning' => warning })
+        end
+        client.perform_request('GET', '/')
+        expect(logger).to have_received(:warn).with(warning)
+      end
+    end
   end
 
   context 'when the client connects to Elasticsearch' do

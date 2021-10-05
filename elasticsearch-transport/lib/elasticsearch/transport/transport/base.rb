@@ -342,6 +342,7 @@ module Elasticsearch
 
           __trace  method, path, params, connection.connection.headers, body, url, response, nil, 'N/A', duration if tracer
 
+          log_warn(response.headers['warning']) if response.headers&.[]('warning')
           Response.new response.status, json || response.body, response.headers
         ensure
           @last_request_at = Time.now
